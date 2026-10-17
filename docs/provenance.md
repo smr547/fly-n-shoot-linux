@@ -8,15 +8,15 @@
 - `qwin-gui/game-gui/Res/`: original GUI bitmap resources.
 - `qwin-gui/dpp-gui/`: original Windows DPP GUI example (future experiment).
 
-The game files' headers reference QP/C++ 7.3.0 and dates in 2023. Generated files identify QM 7.0.1 and SPDX-License-Identifier: GPL-3.0-or-later. These are **source-declared versions**, not independently verified upstream provenance.
+The game files' headers reference QP/C++ 7.3.0 and dates in 2023. The local archive `~/qp_old/qpcpp/include/qp.hpp` was previously inspected and identifies QP/C++ 7.3.2. Previous DPP work identified the official `qpcpp_7.3.2.zip` distribution and verified a DPP model against that archive using `cmp`. The game source was copied from `~/qp_old/qp/qpcpp/examples/qwin-gui/`; the framework tree also contains `~/qp_old/qpcpp/examples/qwin-gui/`. Generated files identify QM 7.0.1 and SPDX-License-Identifier: GPL-3.0-or-later. These are **source-declared versions**, not independently verified upstream provenance.
 
 ## Provenance verification still required
 
-1. Identify the precise public Quantum Leaps distribution URL and upstream release/tag/commit used to populate this repository.
+1. Record the previously identified official Quantum Leaps `qpcpp_7.3.2.zip` archive as the framework provenance, and compare the game files against the user's archived `~/qp_old/qp/qpcpp/examples/qwin-gui/` source. Do not assume the separate `qp/` copy and `qpcpp/` copy are identical without checking.
 2. Compare the imported files against that distribution (e.g. `diff -ru` or `sha256sum`).
 3. Record any pre-existing local modifications separately.
 4. Inspect individual notices and distribution rights for all `Res/` bitmap/icon assets.
-5. Pin the QP/C++ framework dependency to a known compatible public GPL release; do not include evaluation/commercial-only files.
+5. Build against the existing local QP/C++ 7.3.2 GPL installation at `~/qp_old/qpcpp/`; do not include evaluation/commercial-only files.
 
 Do not claim that the upstream tree is byte-identical until verification is complete.
 
