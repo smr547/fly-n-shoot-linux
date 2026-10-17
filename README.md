@@ -20,7 +20,7 @@ The original examples are preserved under `qwin-gui/`:
 - `qwin-gui/dpp-gui/`: Dining Philosophers Windows/QWin GUI example, reserved for a later port.
 - `qwin-gui/README.md`: Quantum Leaps' description of dual targeting and QWin.
 
-The original game files identify **QP/C++ 7.3.0** (2023), and the generated `game.hpp` identifies **QM 7.0.1**. Source-level copyright and licensing notices are retained. The exact upstream archive/tag/commit from which these files were copied has **not yet been verified**; record it before claiming byte-for-byte upstream identity. See [docs/provenance.md](docs/provenance.md).
+The example source headers identify **QP/C++ 7.3.0-era APIs** and the generated `game.hpp` identifies **QM 7.0.1**. The established local framework baseline for this experiment is **QP/C++ 7.3.2**, installed at `~/qp_old/qpcpp/`. Source-level copyright and licensing notices are retained. The exact upstream archive/tag/commit from which these files were copied has **not yet been verified**; record it before claiming byte-for-byte upstream identity. See [docs/provenance.md](docs/provenance.md).
 
 ## License
 
@@ -38,4 +38,4 @@ See [docs/port-plan.md](docs/port-plan.md) for milestones and acceptance criteri
 
 Branch: `feature/linux-sdl3-port`.
 
-No build instructions are published yet: SDL3 integration and the exact compatible QP/C++ source/dependency have not been implemented or verified.
+No build instructions are published yet: SDL3 integration and the existing local QP/C++ 7.3.2 framework has not yet been wired into this CMake project.
