@@ -5,7 +5,7 @@
 - Preserve `game.qm` and all QM-generated game files unchanged for the first working port.
 - Preserve the BSP API in `bsp.hpp` wherever feasible.
 - Keep original Windows examples under `qwin-gui/` unchanged.
-- Match the example's QP/C++ 7.3.0 API before considering framework upgrades.
+- Use the established local QP/C++ 7.3.2 framework at `~/qp_old/qpcpp/`; the example source is 7.3.0-era and compatibility still needs build verification.
 - Do not replace game physics, framebuffer algorithms or collision detection merely to accommodate SDL3.
 
 ## Architecture observations
@@ -16,7 +16,7 @@ The Linux adaptation needs an explicit threading contract: SDL window creation, 
 
 ## Milestones
 
-1. **Baseline:** confirm upstream provenance, framework version and license notices.
+1. **Baseline:** record the established QP/C++ 7.3.2 archive provenance, compare game files against `~/qp_old/qp/qpcpp/examples/qwin-gui/`, and check license notices.
 2. **SDL smoke test:** CMake builds an SDL3 window showing a scaled 128×128 test framebuffer; clean window-close behavior.
 3. **QP integration:** initialize framework, pools, publish-subscribe and active objects; confirm 33 Hz ticker.
 4. **BSP:** implement input, display, collision helpers and shutdown while retaining original model files.
@@ -37,4 +37,4 @@ pkg-config --modversion sdl3
 git status --short --branch
 ```
 
-No assumption is made that SDL3 or the QP 7.3.0 POSIX port is installed.
+The QP/C++ 7.3.2 framework is already installed at `~/qp_old/qpcpp/`; SDL3 availability and the exact POSIX port/build configuration still need checking.
