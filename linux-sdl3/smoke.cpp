@@ -35,6 +35,10 @@ void draw_test_pattern(Framebuffer &pixels, std::uint64_t frame) {
 }
 
 int main(int, char **) {
+    // Avoid desktop-wide compositor transitions on multi-monitor X11 setups.
+    // Set before SDL_Init(); SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR=0
+    // was confirmed to prevent black flashes on window startup.
+    SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         std::fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
         return 1;
