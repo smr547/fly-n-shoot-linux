@@ -19,6 +19,7 @@ if(FLY_BUILD_QP_GAME)
     if(NOT EXISTS "${QP_ROOT}/ports/posix/qf_port.cpp")
         message(FATAL_ERROR "QP/C++ POSIX port not found under QP_ROOT=${QP_ROOT}")
     endif()
+    option(FLY_ENABLE_QS "Enable QP/C++ QS tracing to QSpy over TCP" OFF)
     find_package(Threads REQUIRED)
     file(GLOB QP_QEP_SOURCES CONFIGURE_DEPENDS "${QP_ROOT}/src/qep/*.cpp")
     file(GLOB QP_QF_SOURCES CONFIGURE_DEPENDS "${QP_ROOT}/src/qf/*.cpp")
@@ -26,6 +27,10 @@ if(FLY_BUILD_QP_GAME)
         ${QP_QEP_SOURCES}
         ${QP_QF_SOURCES}
         "${QP_ROOT}/ports/posix/qf_port.cpp")
+    if(FLY_ENABLE_QS)
+        target_sources(qp_posix PRIVATE "${QP_ROOT}/ports/posix/qs_port.cpp")
+        target_compile_definitions(qp_posix PUBLIC Q_SPY)
+    endif()
     target_include_directories(qp_posix PUBLIC
         "${QP_ROOT}/ports/posix"
         "${QP_ROOT}/include"
