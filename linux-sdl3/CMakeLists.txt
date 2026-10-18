@@ -11,20 +11,37 @@ target_link_libraries(fly_n_shoot_sdl_smoke PRIVATE SDL3::SDL3)
 target_compile_options(fly_n_shoot_sdl_smoke PRIVATE -Wall -Wextra -Wpedantic)
 
 
-# The original QM-generated game is deliberately kept separate from the
-# SDL smoke test. The QP build is opt-in until the POSIX BSP is complete.
+
+# QP/C++ 7.3.2 POSIX application. QP source is supplied by the user locally.
 option(FLY_BUILD_QP_GAME "Build original QP/C++ game with SDL3 BSP" OFF)
+set(QP_ROOT "$ENV{HOME}/qp_old/qpcpp" CACHE PATH "QP/C++ 7.3.2 source root")
 if(FLY_BUILD_QP_GAME)
-    if(NOT DEFINED QP_ROOT)
-        message(FATAL_ERROR "Set -DQP_ROOT=/path/to/qpcpp (QP/C++ 7.3.2)")
+    if(NOT EXISTS "${QP_ROOT}/ports/posix/qf_port.cpp")
+        message(FATAL_ERROR "QP/C++ POSIX port not found under QP_ROOT=${QP_ROOT}")
     endif()
-    set(QP_PORT "posix" CACHE STRING "QP/C++ POSIX port directory")
-    set(QP_LIB "${QP_ROOT}/ports/${QP_PORT}" CACHE PATH
-        "QP POSIX port location (verify against local QP tree)")
-    message(STATUS "QP/C++ source: ${QP_ROOT}")
-    message(STATUS "QP/C++ port: ${QP_LIB}")
-    message(FATAL_ERROR
-        "QP game target not yet enabled: POSIX port sources, lifecycle "
-        "and SDL framebuffer bridge must be verified together. "
-        "The SDL smoke target remains buildable.")
+    find_package(Threads REQUIRED)
+    file(GLOB QP_QEP_SOURCES CONFIGURE_DEPENDS "${QP_ROOT}/src/qep/*.cpp")
+    file(GLOB QP_QF_SOURCES CONFIGURE_DEPENDS "${QP_ROOT}/src/qf/*.cpp")
+    add_library(qp_posix STATIC
+        ${QP_QEP_SOURCES}
+        ${QP_QF_SOURCES}
+        "${QP_ROOT}/ports/posix/qf_port.cpp")
+    target_include_directories(qp_posix PUBLIC
+        "${QP_ROOT}/ports/posix"
+        "${QP_ROOT}/include"
+        "${QP_ROOT}/src")
+    target_link_libraries(qp_posix PUBLIC Threads::Threads)
+
+    set(GAME_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../qwin-gui/game-gui")
+    add_executable(fly_n_shoot_qp
+        game_main.cpp bsp.cpp frame_bridge.cpp
+        "${GAME_SRC}/ship.cpp"
+        "${GAME_SRC}/missile.cpp"
+        "${GAME_SRC}/mine1.cpp"
+        "${GAME_SRC}/mine2.cpp"
+        "${GAME_SRC}/tunnel.cpp")
+    target_include_directories(fly_n_shoot_qp PRIVATE
+        "${GAME_SRC}" "${CMAKE_CURRENT_SOURCE_DIR}")
+    target_link_libraries(fly_n_shoot_qp PRIVATE qp_posix SDL3::SDL3)
+    target_compile_options(fly_n_shoot_qp PRIVATE -Wall -Wextra -Wpedantic)
 endif()
