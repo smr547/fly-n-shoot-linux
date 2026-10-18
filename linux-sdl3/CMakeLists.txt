@@ -28,7 +28,8 @@ if(FLY_BUILD_QP_GAME)
         ${QP_QF_SOURCES}
         "${QP_ROOT}/ports/posix/qf_port.cpp")
     if(FLY_ENABLE_QS)
-        target_sources(qp_posix PRIVATE "${QP_ROOT}/ports/posix/qs_port.cpp")
+        file(GLOB QP_QS_SOURCES CONFIGURE_DEPENDS "${QP_ROOT}/src/qs/*.cpp")
+        target_sources(qp_posix PRIVATE ${QP_QS_SOURCES} "${QP_ROOT}/ports/posix/qs_port.cpp")
         target_compile_definitions(qp_posix PUBLIC Q_SPY)
     endif()
     target_include_directories(qp_posix PUBLIC
