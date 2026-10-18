@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <thread>
+#include <cstdlib>
 
 namespace {
 constexpr int SCALE=4;
@@ -23,6 +24,29 @@ void publish(QP::QEvt const *event) { QP::QF::PUBLISH(event, nullptr); }
 void qpThread() {
     QP::QF::init();
     BSP::init();
+#ifdef Q_SPY
+    char const *endpoint=std::getenv("FLY_QSPY_TARGET");
+    if (!QS_INIT(endpoint)) {
+        std::fprintf(stderr, "QS: QSpy TCP connection failed; start qspy -t first.\n");
+        std::abort();
+    }
+    QS_GLB_FILTER(QP::QS_ALL_RECORDS);
+    QS_GLB_FILTER(-QP::QS_QF_TICK);
+    QS_OBJ_DICTIONARY(GAME::AO_Tunnel);
+    QS_OBJ_DICTIONARY(GAME::AO_Ship);
+    QS_OBJ_DICTIONARY(GAME::AO_Missile);
+    QS_SIG_DICTIONARY(GAME::TIME_TICK_SIG, nullptr);
+    QS_SIG_DICTIONARY(GAME::PLAYER_TRIGGER_SIG, nullptr);
+    QS_SIG_DICTIONARY(GAME::PLAYER_QUIT_SIG, nullptr);
+    QS_SIG_DICTIONARY(GAME::GAME_OVER_SIG, nullptr);
+    QS_SIG_DICTIONARY(GAME::PLAYER_SHIP_MOVE_SIG, nullptr);
+    QS_SIG_DICTIONARY(GAME::TAKE_OFF_SIG, nullptr);
+    QS_SIG_DICTIONARY(GAME::HIT_WALL_SIG, nullptr);
+    QS_SIG_DICTIONARY(GAME::HIT_MINE_SIG, nullptr);
+    QS_SIG_DICTIONARY(GAME::MISSILE_FIRE_SIG, nullptr);
+    QS_SIG_DICTIONARY(GAME::DESTROYED_MINE_SIG, nullptr);
+    QS_SIG_DICTIONARY(GAME::SCORE_SIG, nullptr);
+#endif
     // Generous queues and pool for a non-real-time desktop environment.
     static QF_MPOOL_EL(GAME::ObjectImageEvt) pool[(2*GAME_MINES_MAX+10)*10];
     QP::QF::poolInit(pool,sizeof(pool),sizeof(pool[0]));
@@ -50,6 +74,10 @@ void onCleanup() {}
 void onClockTick() {
     QTimeEvt::TICK_X(0U,nullptr);
     QF::PUBLISH(&tickEvt,nullptr);
+#ifdef Q_SPY
+    QS_RX_INPUT();
+    QS_OUTPUT();
+#endif
 }
 }
 }
@@ -117,3 +145,12 @@ int main() {
     SDL_Quit();
     return 0;
 }
+
+#ifdef Q_SPY
+namespace QP {
+void QS::onCommand(std::uint8_t cmdId, std::uint32_t p1,
+                   std::uint32_t p2, std::uint32_t p3) {
+    (void)cmdId; (void)p1; (void)p2; (void)p3;
+}
+}
+#endif
