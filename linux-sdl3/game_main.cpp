@@ -28,9 +28,9 @@ void qpThread() {
     QP::QF::poolInit(pool,sizeof(pool),sizeof(pool[0]));
     static QP::QSubscrList subscr[GAME::MAX_PUB_SIG];
     QP::QActive::psInit(subscr,Q_DIM(subscr));
-    static QP::QEvtPtr tunnelQueue[(GAME_MINES_MAX+5)*10];
-    static QP::QEvtPtr shipQueue[3*10];
-    static QP::QEvtPtr missileQueue[2*10];
+    static QP::QEvt const *tunnelQueue[(GAME_MINES_MAX+5)*10];
+    static QP::QEvt const *shipQueue[3*10];
+    static QP::QEvt const *missileQueue[2*10];
     GAME::AO_Tunnel->start(2U,tunnelQueue,Q_DIM(tunnelQueue),nullptr,0U);
     GAME::AO_Ship->start(3U,shipQueue,Q_DIM(shipQueue),nullptr,0U);
     GAME::AO_Missile->start(4U,missileQueue,Q_DIM(missileQueue),nullptr,0U);
