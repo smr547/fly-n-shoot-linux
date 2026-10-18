@@ -15,3 +15,27 @@ Expected: a 512×512 window displaying a 128×128 logical framebuffer, turquoise
 If CMake cannot find SDL3 installed under `/usr/local`, configure with `-DCMAKE_PREFIX_PATH=/usr/local`.
 
 The test uses SDL3's main-thread event loop, an ARGB8888 streaming texture and nearest-neighbour integer scaling. It runs a nominal 33-frame/s pacing loop; actual frame timing is not yet measured. QP integration, original bit-packed framebuffer and input mapping are next.
+
+
+## Experimental QP/C++ game integration (first build)
+
+The original QM-generated game sources are linked without editing them. Supply the
+local QP/C++ 7.3.2 source tree; it is not copied into this repository.
+
+```sh
+git switch feature/linux-sdl3-port
+git pull --ff-only
+cmake -S linux-sdl3 -B build/linux-sdl3 \
+  -DFLY_BUILD_QP_GAME=ON \
+  -DQP_ROOT="$HOME/qp_old/qpcpp"
+cmake --build build/linux-sdl3 -j2
+./build/linux-sdl3/fly_n_shoot_qp
+```
+
+Keys: Space fires, Up arrow is throttle, Escape closes the window.
+The X11 compositor-bypass hint remains disabled.
+
+**Status:** first integration build; not yet verified on the target laptop.
+The QP POSIX port spawns detached active-object threads, so shutdown behavior
+also needs target testing. Report the first compiler error verbatim if any.
+The independent `fly_n_shoot_sdl_smoke` target remains available.
