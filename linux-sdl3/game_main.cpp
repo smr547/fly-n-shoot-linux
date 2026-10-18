@@ -19,7 +19,7 @@ std::atomic<bool> qpReady{false};
 static QP::QEvt const tickEvt(GAME::TIME_TICK_SIG);
 static QP::QEvt const triggerEvt(GAME::PLAYER_TRIGGER_SIG);
 static QP::QEvt const quitEvt(GAME::PLAYER_QUIT_SIG);
-void publish(QP::QEvt const *event) { QP::QF::PUBLISH(event, static_cast<QP::QActive const *>(nullptr)); }
+void publish(QP::QEvt const *event) { QP::QActive::publish_(event, nullptr, 0U); }
 
 void qpThread() {
     QP::QF::init();
@@ -73,7 +73,7 @@ void onStartup() { setTickRate(BSP::TICKS_PER_SEC,0); }
 void onCleanup() {}
 void onClockTick() {
     QTimeEvt::TICK_X(0U,nullptr);
-    QF::PUBLISH(&tickEvt,static_cast<QP::QActive const *>(nullptr));
+    QActive::publish_(&tickEvt, nullptr, 0U);
 #ifdef Q_SPY
     QS_RX_INPUT();
     QS_OUTPUT();
