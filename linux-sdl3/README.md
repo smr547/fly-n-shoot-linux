@@ -35,9 +35,9 @@ cmake --build build/linux-sdl3 -j2
 Keys: Space fires, Up arrow is throttle, Escape closes the window.
 The X11 compositor-bypass hint remains disabled.
 
-**Status:** first integration build; not yet verified on the target laptop.
-The QP POSIX port spawns detached active-object threads, so shutdown behavior
-also needs target testing. Report the first compiler error verbatim if any.
+**Status (18 October 2026):** verified running on the target Linux laptop.
+The original QM-generated game sources remain unchanged. The QP POSIX port
+spawns detached active-object threads; orderly shutdown remains worth reviewing.
 The independent `fly_n_shoot_sdl_smoke` target remains available.
 
 
@@ -69,5 +69,18 @@ The default target is `localhost:6601`. Override with
 terminates the instrumented game rather than silently disabling tracing.
 The code installs AO and selected signal dictionaries and outputs QS
 records on each QP clock tick. For high event rates, adjust QS filters
-to control trace volume. This build awaits testing against the user's
-local QSpy executable; command-line flags may differ between versions.
+to control trace volume. **Verified (18 October 2026):** the QS-enabled game compiled and linked,
+and QSpy 7.3.1 successfully received and decoded live TCP trace records.
+Use the installed QSpy binary with explicit settings (64-bit Linux pointers):
+
+```sh
+/home/smr/qp_old/qtools/bin/qspy -t 6601 -u 0 -v 7.3 -O 8 -F 8
+```
+
+Start QSpy before launching the QS-enabled game. An earlier QSpy process
+using a serial device held the default UDP socket (`errno=98`); `-u 0`
+disables that unused socket. Trace output is currently very high volume.
+Next experiment: filter QS records and capture a short controlled run,
+then examine event exchanges and HSM transitions for comparison with
+`smr547/collab`. QSpy's `-s` binary capture and `-g` sequence output are
+promising options, not yet exercised in this experiment.
