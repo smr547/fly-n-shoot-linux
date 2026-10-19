@@ -1,30 +1,43 @@
-# SDL3 smoke test
+# Linux / SDL3 build notes
 
-This is the first Linux build milestone, **not yet the QP game**.
+The **Fly 'n' Shoot game is running on Linux** with SDL3 and QP/C++ 7.3.2. Run all commands from the repository root.
 
-Requires SDL3 development files and CMake. From the repository root:
+## SDL3 dependency
+
+Install general build prerequisites on Debian/Ubuntu:
 
 ```sh
-cmake -S linux-sdl3 -B build/linux-sdl3 -DCMAKE_BUILD_TYPE=Debug
-cmake --build build/linux-sdl3 -j
-./build/linux-sdl3/fly_n_shoot_sdl_smoke
+sudo apt update
+sudo apt install build-essential cmake pkg-config git
 ```
 
-Expected: a 512×512 window displaying a 128×128 logical framebuffer, turquoise crosshair and moving yellow rectangle. Press Escape or close the window to exit.
-
-If CMake cannot find SDL3 installed under `/usr/local`, configure with `-DCMAKE_PREFIX_PATH=/usr/local`.
-
-The test uses SDL3's main-thread event loop, an ARGB8888 streaming texture and nearest-neighbour integer scaling. It runs a nominal 33-frame/s pacing loop; actual frame timing is not yet measured. QP integration, original bit-packed framebuffer and input mapping are next.
-
-
-## Experimental QP/C++ game integration (first build)
-
-The original QM-generated game sources are linked without editing them. Supply the
-local QP/C++ 7.3.2 source tree; it is not copied into this repository.
+If available for your distribution release, install SDL3 development files:
 
 ```sh
-git switch feature/linux-sdl3-port
-git pull --ff-only
+sudo apt install libsdl3-dev
+```
+
+**Important:** `libsdl3-dev` is not available in every Ubuntu/Debian release. If the package is unavailable, build and install SDL3 from the official [SDL source repository](https://github.com/libsdl-org/SDL), following its Linux build instructions. One typical CMake workflow, assuming suitable build dependencies are installed, is:
+
+```sh
+git clone https://github.com/libsdl-org/SDL.git
+cmake -S SDL -B SDL/build -DCMAKE_BUILD_TYPE=Release
+cmake --build SDL/build -j2
+sudo cmake --install SDL/build
+sudo ldconfig
+```
+
+For reproducibility, choose and record a stable SDL3 release/tag rather than relying on the repository's changing default branch. SDL's own build may require additional development libraries depending on distribution and selected backends.
+
+The project uses `find_package(SDL3 CONFIG REQUIRED)`. If SDL3 is installed somewhere other than the usual system paths, add `-DCMAKE_PREFIX_PATH=/path/to/sdl3/prefix` to the game's CMake configuration. An installation under `/usr/local` may require `-DCMAKE_PREFIX_PATH=/usr/local`.
+
+## QP/C++ dependency
+
+Supply a **QP/C++ 7.3.2 source tree** separately; it is not vendored in this repository. Set `QP_ROOT` to its root, containing `ports/posix/qf_port.cpp`. The verified developer layout is `$HOME/qp_old/qpcpp`.
+
+## Build and run the game
+
+```sh
 cmake -S linux-sdl3 -B build/linux-sdl3 \
   -DFLY_BUILD_QP_GAME=ON \
   -DQP_ROOT="$HOME/qp_old/qpcpp"
@@ -32,29 +45,23 @@ cmake --build build/linux-sdl3 -j2
 ./build/linux-sdl3/fly_n_shoot_qp
 ```
 
-Keys: Space fires, Up arrow is throttle, Escape closes the window.
-The X11 compositor-bypass hint remains disabled.
+**Controls:** Up arrow — thrust; Space — fire; Escape — quit.
 
-**Status:** first integration build; not yet verified on the target laptop.
-The QP POSIX port spawns detached active-object threads, so shutdown behavior
-also needs target testing. Report the first compiler error verbatim if any.
-The independent `fly_n_shoot_sdl_smoke` target remains available.
+The original QM-generated game sources are compiled without modifications. The SDL3 implementation retains the logical 128×128 framebuffer and nominal 33 Hz update rate. The Linux QP POSIX port uses active-object threads; orderly shutdown is still worth reviewing.
 
+## Optional: QS tracing to QSpy over TCP
 
-## QS tracing over TCP (experimental)
+The QS build uses the unmodified QP/C++ 7.3.2 POSIX QS TCP port (`ports/posix/qs_port.cpp`). Tracing is **off** in the ordinary game build.
 
-The optional `FLY_ENABLE_QS` build uses the **unmodified QP/C++ 7.3.2
-POSIX QS TCP port** (`ports/posix/qs_port.cpp`). It does not send binary
-trace data to stdout. QS is off by default, preserving the known-working
-non-tracing game.
-
-Start the QSpy TCP server in a separate terminal **before launching the game**:
+Start QSpy **first**, in a separate terminal. This command was verified with QSpy 7.3.1 on 64-bit Linux:
 
 ```sh
-qspy -t
+/home/smr/qp_old/qtools/bin/qspy -t 6601 -u 0 -v 7.3 -O 8 -F 8
 ```
 
-Then build and launch the instrumented game:
+Adjust the QSpy executable path for your installation. The options select TCP port 6601, disable the unused UDP socket, select QS protocol 7.3 compatibility and set 64-bit object/function pointers.
+
+Configure and launch the instrumented game in another terminal:
 
 ```sh
 cmake -S linux-sdl3 -B build/linux-sdl3-qs \
@@ -64,10 +71,18 @@ cmake --build build/linux-sdl3-qs -j2
 ./build/linux-sdl3-qs/fly_n_shoot_qp
 ```
 
-The default target is `localhost:6601`. Override with
-`FLY_QSPY_TARGET=hostname:port` if necessary. A failed QS connection
-terminates the instrumented game rather than silently disabling tracing.
-The code installs AO and selected signal dictionaries and outputs QS
-records on each QP clock tick. For high event rates, adjust QS filters
-to control trace volume. This build awaits testing against the user's
-local QSpy executable; command-line flags may differ between versions.
+By default, the game connects to `localhost:6601`; `FLY_QSPY_TARGET=hostname:port` overrides this. A failed QS connection terminates the instrumented executable rather than silently disabling tracing.
+
+**Verified October 2026:** QSpy receives and decodes live records, including active-object/state-machine activity. Trace volume is high. QS filtering, controlled binary capture (`qspy -s`) and QSpy sequence-diagram output (`-g`) are promising next experiments for [collab](https://github.com/smr547/collab); those experiments have not yet been completed.
+
+## SDL3-only smoke test
+
+The separate smoke-test executable does not require QP/C++:
+
+```sh
+cmake -S linux-sdl3 -B build/linux-sdl3-smoke -DCMAKE_BUILD_TYPE=Debug
+cmake --build build/linux-sdl3-smoke -j2
+./build/linux-sdl3-smoke/fly_n_shoot_sdl_smoke
+```
+
+It opens a 512×512 window showing a scaled 128×128 logical framebuffer, a turquoise crosshair and a moving yellow rectangle. Press Escape or close the window to exit. It uses an ARGB8888 streaming texture and nearest-neighbour scaling.
